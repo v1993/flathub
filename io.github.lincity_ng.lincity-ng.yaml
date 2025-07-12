@@ -1,0 +1,64 @@
+app-id: io.github.lincity_ng.lincity-ng
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+
+command: lincity-ng
+finish-args:
+  - --share=ipc
+  - --device=dri
+  - --socket=pulseaudio
+  - --socket=wayland
+  - --socket=fallback-x11
+
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - /share/man
+  - /share/doc
+
+modules:
+  - name: libxmlplusplus
+    buildsystem: meson
+    config-opts:
+      - -Dbuild-examples=false
+      - -Dbuild-tests=false
+    cleanup:
+      - /lib/libxml++-5.0
+    sources:
+      - type: archive
+        url: https://github.com/libxmlplusplus/libxmlplusplus/releases/download/5.4.0/libxml%2B%2B-5.4.0.tar.xz
+        sha256: e9a23c436686a94698d2138e6bcbaf849121d63bfa0f50dc34fefbfd79566848
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/libxmlplusplus/libxmlplusplus/releases/latest
+          version-query: .tag_name
+          url-query: .assets[] | select(.name=="libxml++-" + $version + ".tar.xz")
+            | .browser_download_url
+
+  - name: lincity-ng
+    # TODO: switch to cmake-ninja once https://github.com/lincity-ng/lincity-ng/issues/274 is resolved
+    buildsystem: cmake
+    config-opts:
+      - -DLINCITY_VERSION_SUFFIX_OVERRIDE=flatpak
+    sources:
+      - type: git
+        url: https://github.com/lincity-ng/lincity-ng.git
+        commit: ceeeecd543630f3296e89e122820ac5ba744cce4
+
+      # - type: archive
+      #   url: https://github.com/lincity-ng/lincity-ng/releases/download/lincity-ng-2.14.0/lincity-ng-2.14.0-Source.tar.xz
+      #   sha256: 49d2516289521a9aeb9c0ae9f028759157924d8cad99d89f01e4da1c5c9649fc
+      #   x-checker-data:
+      #     type: json
+      #     is-main-source: true
+      #     url: https://api.github.com/repos/lincity-ng/lincity-ng/releases/latest
+      #     version-query: .tag_name | sub("^lincity-ng-"; "")
+      #     url-query: .assets[] | select(.name=="lincity-ng-" + $version + "-Source.tar.xz")
+      #       | .browser_download_url
+
+      # - type: dir
+      #   path: ..
+      #   skip:
+      #     - flatpak/
+      #     - .git/
